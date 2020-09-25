@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t nevaehtang/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run nevaehtang/react-test npm run test -- --coverage
+
+after_success:
+    - docker build -t nevaehtang/multi-client ./client
+    - docker build -t nevaehtang/multi-nginx ./nginx
+    - docker build -t nevaehtang/multi-server ./server
+    - docker build -t nevaehtang/multi-worker ./worker
+    #log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #push images to docker hub
+    - docker push nevaehtang/multi-client
+    - docker push nevaehtang/multi-nginx
+    - docker push nevaehtang/multi-server
+    - docker push nevaehtang/multi-worker
